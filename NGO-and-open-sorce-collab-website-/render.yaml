@@ -1,0 +1,49 @@
+# Render manifest for deploying the backend and managed Postgres + Redis.
+# Replace region/plan/branch and secret names as needed.
+# Note: Render's manifest syntax may evolve — use this as a starting template.
+
+services:
+  - type: web
+    name: ngo-backend
+    env: docker
+    repo: "https://github.com/Vijay-kumar2006/NGO-and-open-sorce-collab-website-.git" # replace
+    branch: main
+    dockerfilePath: docker/backend.Dockerfile
+    plan: starter
+    # If your Dockerfile already runs migrations and starts the server, leave build/start blank.
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: ngo-db
+      - key: REDIS_URL
+        fromService: ngo-redis
+      - key: JWT_SECRET
+        generator: secret
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
+
+# Managed Postgres database
+databases:
+  - name: ngo-db
+    engine: postgresql
+    plan: starter
+    # region: oregon
+
+# Managed Redis (Render supports a 'services' entry for redis resources)
+# If Render's manifest schema on your account is different, create Redis from the dashboard
+# and set REDIS_URL from the dashboard instead.
+services:
+  - type: redis
+    name: ngo-redis
+    plan: starter
+
+# Optional: static env or other services can be added here.
+
+# Usage:
+# - Push this file to your repo root.
+# - In Render, create a new service by connecting the repo (Render will import the manifest)
+# - Confirm the `repo` field and replace it with the correct "owner/repo" value or leave blank.
+# - After Render creates resources, it will populate DATABASE_URL/REDIS_URL for the web service.
